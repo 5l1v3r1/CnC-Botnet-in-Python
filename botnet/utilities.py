@@ -1,8 +1,11 @@
-#!/usr/bin/env python
+try:
+    input = raw_input
+except NameError:
+    pass
 
 
 def choice_error():
-    print "Choice does not exist"
+    print("Choice does not exist")
 
 
 def end():
@@ -10,7 +13,7 @@ def end():
 
 
 def menu():
-    print "=" * 33 + "\nMENU\n" + "=" * 33
+    print("=" * 33 + "\nMENU\n" + "=" * 33)
     descriptions = ["Load host from external file",
                     "Add a new host",
                     "Print selected hosts",
@@ -23,6 +26,6 @@ def menu():
                     "Open shell in a host",
                     "Exit"]
     for num, func in enumerate(descriptions):
-        print "[" + str(num) + "] " + func
-    choice = raw_input(">>> ")
+        print("[" + str(num) + "] " + func)
+    choice = input(">>> ")
     return choice

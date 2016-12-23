@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 from fabric.api import env, run, sudo, execute, local, settings, hide, open_shell, parallel
 from fabric.contrib.console import confirm
@@ -7,6 +5,11 @@ import paramiko
 import getpass
 from tabulate import tabulate
 
+
+try:
+    input = raw_input
+except NameError:
+    pass
 
 file_hosts = "hosts.txt"
 paramiko.util.log_to_file("paramiko.log")
@@ -45,9 +48,9 @@ def add_host():
     Add a new host to the running hosts.
     Add the new host also to the external host file.
     """
-    name = raw_input("Username: ")
-    host = raw_input("Host: ")
-    port = input("Port: ")
+    name = input("Username: ")
+    host = input("Host: ")
+    port = int(input("Port: "))
     new_host = name + "@" + host + ":" + str(port)
     selected_hosts.append(new_host)
     password = None
@@ -70,7 +73,7 @@ def print_hosts():
     """
     global selected_hosts
     hosts = map(lambda x: [x, env.passwords.get(x, None)], selected_hosts)
-    print tabulate(hosts, ["Host", "Password"])
+    print(tabulate(hosts, ["Host", "Password"]))
 
 
 def check_hosts():
@@ -80,7 +83,7 @@ def check_hosts():
     global running_hosts
     running_hosts = dict()
     for host in selected_hosts:
-        print "\nPing host " + str(selected_hosts.index(host) + 1) + " of " + str(len(selected_hosts))
+        print("\nPing host " + str(selected_hosts.index(host) + 1) + " of " + str(len(selected_hosts)))
         response = os.system("ping -c 1 " + host.split("@")[1].split(":")[0])
         if response == 0:
             running_hosts[host] = True
@@ -88,7 +91,7 @@ def check_hosts():
             running_hosts[host] = False
     # Convert running_hosts in order to print it as table
     mylist = map(lambda index: [index[0], str(index[1])], running_hosts.items())
-    print tabulate(mylist, ["Host", "Running"])
+    print(tabulate(mylist, ["Host", "Running"]))
 
 
 def select_running_hosts():
@@ -108,10 +111,10 @@ def choose_hosts():
     """
     global selected_hosts
     selected_hosts = []
-    mylist = map(lambda (num, h): [num, h], enumerate(env.hosts))
-    print "Select Hosts:"
-    print tabulate(mylist, ["Number", "Host"])
-    choices = raw_input("> ").split()
+    mylist = list(map(lambda tuple_num_host: list(tuple_num_host), enumerate(env.hosts)))
+    print("Select Hosts:")
+    print(tabulate(mylist, ["Number", "Host"]))
+    choices = input("> ").split()
     # Avoid letters in string index
     choices = filter(lambda x: x.isalnum(), choices)
     # Convert to int list
@@ -140,7 +143,7 @@ def run_locally(cmd=None):
     Execute a command locally.
     """
     if cmd is None:
-        cmd = raw_input("Insert command: ")
+        cmd = input("Insert command: ")
     with settings(warn_only=True):
         local(cmd)
 
@@ -151,12 +154,12 @@ def run_command(cmd=None):
     Execute a command on a host.
     """
     if cmd is None:
-        cmd = raw_input("Insert command: ")
+        cmd = input("Insert command: ")
     execute(execute_command, cmd, hosts=selected_hosts)
 
 
 def execute_script():
-    script_file = raw_input("Name of the script: ")
+    script_file = input("Name of the script: ")
     host_path = "/tmp"
     # Copy the script on bots
     for h in selected_hosts:
@@ -170,11 +173,11 @@ def execute_script():
 
 
 def open_sh():
-    mylist = map(lambda (num, h): [num, h], enumerate(selected_hosts))
-    print tabulate(mylist, ["Number", "Host"])
-    n = input("Open shell in host number: ")
+    mylist = list(map(lambda tuple_num_host: list(tuple_num_host), enumerate(selected_hosts)))
+    print(tabulate(mylist, ["Number", "Host"]))
+    n = int(input("Open shell in host number: "))
     try:
         h = selected_hosts[n]
         execute(open_shell, host=h)
     except Exception:
-        print "Error. Shell not opened."
+        print("Error. Shell not opened.")
